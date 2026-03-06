@@ -1,16 +1,38 @@
-function ProbabilityBar({ homeTeam, awayTeam, homeProb, awayProb }) {
-  const homeWidth = (homeProb * 100).toFixed(1)
-  const awayWidth = (awayProb * 100).toFixed(1)
+function getBadgeClass(discrepancy) {
+  if (discrepancy === null) return 'badge badge-none'
+  if (discrepancy >= 8) return 'badge badge-fire'
+  if (discrepancy >= 5) return 'badge badge-high'
+  if (discrepancy >= 2) return 'badge badge-medium'
+  return 'badge badge-low'
+}
+
+function ProbBar({ awayTeam, homeTeam, awayRaw, homeRaw, label, meta, color }) {
+  const awayPct = (awayRaw * 100).toFixed(1)
+  const homePct = (homeRaw * 100).toFixed(1)
+
+  const awayFill = color === 'blue'
+    ? 'linear-gradient(90deg, #1d4ed8, #3b82f6)'
+    : 'linear-gradient(90deg, #6d28d9, #8b5cf6)'
+
+  const homeFill = color === 'blue'
+    ? 'linear-gradient(90deg, #1d4ed8, #3b82f6)'
+    : 'linear-gradient(90deg, #6d28d9, #8b5cf6)'
 
   return (
-    <div style={{ marginTop: '8px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-        <span>{awayTeam}: {awayWidth}%</span>
-        <span>{homeTeam}: {homeWidth}%</span>
+    <div className="prob-bar-group">
+      <div className="prob-bar-top-row">
+        <div className="prob-bar-label-block">
+          <span className="source-label">{label}</span>
+          <span className="source-meta">{meta}</span>
+        </div>
+        <div className="prob-bar-percentages">
+          <span className="prob-away">{awayTeam.split(' ').pop()} {awayPct}%</span>
+          <span className="prob-home">{homePct}% {homeTeam.split(' ').pop()}</span>
+        </div>
       </div>
-      <div style={{ display: 'flex', height: '12px', borderRadius: '6px', overflow: 'hidden', background: '#7a7a7a' }}>
-        <div style={{ width: `${awayWidth}%`, background: '#3b82f6' }} />
-        <div style={{ width: `${homeWidth}%`, background: '#ef4444' }} />
+      <div className="prob-bar-track">
+        <div style={{ width: `${awayPct}%`, background: awayFill, height: '100%' }} />
+        <div style={{ width: `${homePct}%`, background: homeFill, height: '100%' }} />
       </div>
     </div>
   )
@@ -18,33 +40,50 @@ function ProbabilityBar({ homeTeam, awayTeam, homeProb, awayProb }) {
 
 function GameCard({ game }) {
   const date = new Date(game.commenceTime).toLocaleDateString('en-US', {
-    weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    weekday: 'short', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit'
   })
 
+  const hasKalshi = game.kalshi !== null
+
   return (
-    <div style={{
-      border: '1px solid #ffffff',
-      borderRadius: '12px',
-      padding: '16px',
-      marginBottom: '12px',
-      background: 'white',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-      color: '#111827'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}>
-          {game.awayTeam} @ {game.homeTeam}
-        </h2>
-        <span style={{ fontSize: '12px', color: '#6b7280' }}>{date}</span>
+    <div className="game-card">
+      <div className="card-header">
+        <div>
+          <div className="matchup-teams">
+            {game.awayTeam} <span className="matchup-at">@</span> {game.homeTeam}
+          </div>
+          <div className="matchup-time">{date}</div>
+        </div>
+        <div className={getBadgeClass(game.discrepancy)}>
+          {game.discrepancy !== null ? `${game.discrepancy}% gap` : 'No Kalshi'}
+        </div>
       </div>
-      <ProbabilityBar
-        homeTeam={game.homeTeam}
-        awayTeam={game.awayTeam}
-        homeProb={game.consensus.homeRaw}
-        awayProb={game.consensus.awayRaw}
-      />
-      <div style={{ marginTop: '8px', fontSize: '12px', color: '#9ca3af' }}>
-        Consensus across {game.bookCount} sportsbook{game.bookCount !== 1 ? 's' : ''}
+
+      <div className="bars-stack">
+        <ProbBar
+          awayTeam={game.awayTeam}
+          homeTeam={game.homeTeam}
+          awayRaw={game.consensus.awayRaw}
+          homeRaw={game.consensus.homeRaw}
+          label="Books"
+          meta={`${game.bookCount} books · vig removed`}
+          color="blue"
+        />
+
+        {hasKalshi ? (
+          <ProbBar
+            awayTeam={game.awayTeam}
+            homeTeam={game.homeTeam}
+            awayRaw={game.kalshi.awayRaw}
+            homeRaw={game.kalshi.homeRaw}
+            label="Kalshi"
+            meta={`Vol: ${(game.kalshi.volume / 1000).toFixed(0)}K`}
+            color="purple"
+          />
+        ) : (
+          <div className="no-kalshi">No Kalshi market found</div>
+        )}
       </div>
     </div>
   )
