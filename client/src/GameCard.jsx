@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 function getBadgeClass(discrepancy) {
   if (discrepancy === null) return 'badge badge-none'
   if (discrepancy >= 8) return 'badge badge-fire'
@@ -6,15 +8,15 @@ function getBadgeClass(discrepancy) {
   return 'badge badge-low'
 }
 
+function formatOdds(odds) {
+  return odds > 0 ? `+${odds}` : `${odds}`
+}
+
 function ProbBar({ awayTeam, homeTeam, awayRaw, homeRaw, label, meta, color }) {
   const awayPct = (awayRaw * 100).toFixed(1)
   const homePct = (homeRaw * 100).toFixed(1)
 
-  const awayFill = color === 'blue'
-    ? 'linear-gradient(90deg, #1d4ed8, #3b82f6)'
-    : 'linear-gradient(90deg, #6d28d9, #8b5cf6)'
-
-  const homeFill = color === 'blue'
+  const fill = color === 'blue'
     ? 'linear-gradient(90deg, #1d4ed8, #3b82f6)'
     : 'linear-gradient(90deg, #6d28d9, #8b5cf6)'
 
@@ -31,14 +33,48 @@ function ProbBar({ awayTeam, homeTeam, awayRaw, homeRaw, label, meta, color }) {
         </div>
       </div>
       <div className="prob-bar-track">
-        <div style={{ width: `${awayPct}%`, background: awayFill, height: '100%' }} />
-        <div style={{ width: `${homePct}%`, background: homeFill, height: '100%' }} />
+        <div style={{ width: `${awayPct}%`, background: fill, height: '100%' }} />
+        <div style={{ width: `${homePct}%`, background: fill, height: '100%', opacity: 0.45 }} />
       </div>
     </div>
   )
 }
 
+function BookBreakdown({ books, awayTeam, homeTeam }) {
+  const awayShort = awayTeam.split(' ').pop()
+  const homeShort = homeTeam.split(' ').pop()
+
+  return (
+    <div className="book-breakdown">
+      <table className="book-table">
+        <thead>
+          <tr>
+            <th className="book-th book-th-name">Sportsbook</th>
+            <th className="book-th">{awayShort} odds</th>
+            <th className="book-th">{awayShort} prob</th>
+            <th className="book-th">{homeShort} prob</th>
+            <th className="book-th">{homeShort} odds</th>
+          </tr>
+        </thead>
+        <tbody>
+          {books.map(book => (
+            <tr key={book.name} className="book-row">
+              <td className="book-td book-td-name">{book.name}</td>
+              <td className="book-td book-td-odds">{formatOdds(book.awayOdds)}</td>
+              <td className="book-td book-td-prob prob-away">{(book.awayProb * 100).toFixed(1)}%</td>
+              <td className="book-td book-td-prob prob-home">{(book.homeProb * 100).toFixed(1)}%</td>
+              <td className="book-td book-td-odds">{formatOdds(book.homeOdds)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 function GameCard({ game }) {
+  const [expanded, setExpanded] = useState(false)
+
   const date = new Date(game.commenceTime).toLocaleDateString('en-US', {
     weekday: 'short', month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit'
@@ -85,6 +121,25 @@ function GameCard({ game }) {
           <div className="no-kalshi">No Kalshi market found</div>
         )}
       </div>
+
+      {game.books?.length > 0 && (
+        <>
+          <button className="expand-btn" onClick={() => setExpanded(e => !e)}>
+            {expanded ? 'Hide breakdown' : `Show ${game.books.length} sportsbooks`}
+            <span className="expand-chevron" style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+              ▾
+            </span>
+          </button>
+
+          {expanded && (
+            <BookBreakdown
+              books={game.books}
+              awayTeam={game.awayTeam}
+              homeTeam={game.homeTeam}
+            />
+          )}
+        </>
+      )}
     </div>
   )
 }

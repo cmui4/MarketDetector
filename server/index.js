@@ -21,7 +21,7 @@ function processGame(game) {
   // Average implied probabilities across all books
   let homeProbSum = 0;
   let awayProbSum = 0;
-  let bookCount = 0;
+  const books = [];
 
   bookmakers.forEach(book => {
     const market = book.markets.find(m => m.key === 'h2h');
@@ -37,13 +37,20 @@ function processGame(game) {
 
     homeProbSum += vigRemoved.home;
     awayProbSum += vigRemoved.away;
-    bookCount++;
+
+    books.push({
+      name: book.title,
+      awayOdds: awayOutcome.price,
+      homeOdds: homeOutcome.price,
+      awayProb: vigRemoved.away,
+      homeProb: vigRemoved.home,
+    });
   });
 
-  if (bookCount === 0) return null;
+  if (books.length === 0) return null;
 
-  const consensusHome = homeProbSum / bookCount;
-  const consensusAway = awayProbSum / bookCount;
+  const consensusHome = homeProbSum / books.length;
+  const consensusAway = awayProbSum / books.length;
 
   return {
     id: game.id,
@@ -56,7 +63,8 @@ function processGame(game) {
       homeRaw: consensusHome,
       awayRaw: consensusAway
     },
-    bookCount
+    bookCount: books.length,
+    books
   };
 }
 
