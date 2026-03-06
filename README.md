@@ -8,7 +8,7 @@ A full-stack web application that identifies pricing discrepancies between tradi
 
 ## What It Does
 
-Traditional sportsbooks and prediction markets often price the same event differently. EdgeFinder aggregates NBA moneyline odds from up to 12+ sportsbooks, removes the bookmaker's margin (vig), and computes a fair-value consensus probability. It then compares that consensus against Kalshi's prediction market price for the same game and surfaces the gap — the "edge."
+Traditional sportsbooks and prediction markets often price the same event differently. EdgeFinder aggregates NBA moneyline odds from up to 9+ sportsbooks, removes the bookmaker's margin (vig), and computes a fair-value consensus probability. It then compares that consensus against Kalshi's prediction market price for the same game and surfaces the gap — the "edge."
 
 Games are ranked by discrepancy size so the largest mispricings appear first. Each game card shows:
 
@@ -26,8 +26,8 @@ Data refreshes automatically every 30 seconds and can be manually refreshed at a
 ### Frontend
 | Technology | Purpose |
 |---|---|
-| React 19 | Component-based UI, state management with `useState`/`useEffect`/`useCallback` |
-| Vite 7 | Development server and production bundler |
+| React | Component-based UI, state management with `useState`/`useEffect`/`useCallback` |
+| Vite | Development server and production bundler |
 | Vanilla CSS | All styling — no UI library dependencies |
 
 ### Backend
